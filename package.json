@@ -1,0 +1,19 @@
+{
+  "name": "perf-monitor",
+  "version": "0.0.1",
+  "description": "Monitor a system's performances with Node.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thomas-god/perf-monitor.git"
+  },
+  "author": "thomas-god",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/thomas-god/perf-monitor/issues"
+  },
+  "homepage": "https://github.com/thomas-god/perf-monitor#readme"
+}
