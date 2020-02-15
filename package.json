@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/thomas-god/perf-monitor/issues"
   },
-  "homepage": "https://github.com/thomas-god/perf-monitor#readme"
+  "homepage": "https://github.com/thomas-god/perf-monitor#readme",
+  "dependencies": {
+    "sqlite3": "^4.1.1"
+  }
 }
