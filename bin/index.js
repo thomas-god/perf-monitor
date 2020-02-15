@@ -14,7 +14,7 @@ function openDB() {
         console.error(err);
         reject(err);
       }
-      console.log("Connection open to an in-memory databse");
+      console.log("Connection open to an in-memory database");
       resolve(db);
     });
   });
@@ -61,6 +61,33 @@ function createCPUTable(db, cpus) {
   });
 }
 
+/**
+ * Create the table to hold system memory.
+ * @param {sqlite3.Database} db Connection object to the database.
+ */
+function createMemTable(db) {
+  return new Promise((resolve, reject) => {
+    db.run(
+      `CREATE TABLE IF NOT EXISTS memory (
+        time_id INTEGER, 
+        free INTEGER, 
+        total INTEGER, 
+        FOREIGN KEY(time_id) REFERENCES time(time_id)
+      );`,
+      err => {
+        if (err) {
+          reject(err);
+        }
+        resolve();
+      }
+    );
+  });
+}
+
+/**
+ * Snippet to get all tables in the database.
+ * @param {sqlite3.Database} db Connection object to the database.
+ */
 function getTables(db) {
   return new Promise((resolve, reject) => {
     let tables = [];
@@ -78,12 +105,13 @@ function getTables(db) {
 }
 
 /**
- *
+ * Initiate the database with tables (time, cpus, memory).
  * @param {sqlite3.Database} db Connection object to the database.
  */
 async function initDB(db) {
   await createTimeTable(db);
   await createCPUTable(db, os.cpus());
+  await createMemTable(db);
   console.log(await getTables(db));
 }
 
@@ -142,7 +170,19 @@ function cpuLoad(cpus_p, cpus, db, time_id) {
  */
 function memoryUsage(mem, db, time_id) {
   return new Promise((resolve, reject) => {
-    resolve({ mem: mem.free / 1024 / 1024 / 1024 });
+    let free = mem.free / 1024 / 1024 / 1024;
+    let tot = mem.tot / 1024 / 1024 / 1024;
+    // Insert into DB
+    db.run(
+      `INSERT INTO memory(time_id, total, free) VALUES(?, ?, ?)`,
+      [time_id, tot, free],
+      function(err) {
+        if (err) {
+          console.error(err);
+        }
+      }
+    );
+    resolve({ free: free, tot: tot });
   });
 }
 
