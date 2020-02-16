@@ -3,16 +3,30 @@ const os = require("os");
 
 /**
  * Open a connection to an in memory sqlite3 database and return the DB object.
- *
+ * @param {String} path Path to the database file.
  * @returns {sqlite3.Database object} Opened connection to database.
  */
-function openDB() {
+function openDB(path) {
   return new Promise((resolve, reject) => {
-    const db = new sqlite3.Database("./data/test.db", err => {
+    const db = new sqlite3.Database(path, err => {
       if (err) {
         console.error(err);
         reject(err);
       }
+
+      // Add custom methods to the database instance
+      db.createTimeTable = createTimeTable;
+      db.createCPUTable = createCPUTable;
+      db.createMemTable = createMemTable;
+      db.getTables = getTables;
+      db.initDB = initDB;
+      db.insertDBTime = insertDBTime;
+      db.getTimeWindowIDs = getTimeWindowIDs;
+      db.closeDB = closeDB;
+
+      // Init DB with tables
+      db.initDB();
+
       console.log("Connection open to an in-memory database");
       resolve(db);
     });
@@ -21,12 +35,14 @@ function openDB() {
 
 /**
  * Create the time table in the database.
- * @param {sqlite3.Database} db Connection instance to the database.
  */
-function createTimeTable(db) {
+function createTimeTable() {
   return new Promise((resolve, reject) => {
-    db.run(
-      "CREATE TABLE IF NOT EXISTS time (time_id INTEGER PRIMARY KEY NOT NULL, timestamp INTEGER);",
+    this.run(
+      `CREATE TABLE IF NOT EXISTS time (
+        time_id INTEGER PRIMARY KEY NOT NULL, 
+        timestamp INTEGER
+      );`,
       err => {
         if (err) {
           reject(err);
@@ -39,12 +55,11 @@ function createTimeTable(db) {
 
 /**
  * Create the CPU table in the database based on the number of threads from os.cpus()
- * @param {sqlite3.Database} db Instance of the connection to the database
  * @param {os.cpus} cpus Object from os.cpus()
  */
-function createCPUTable(db, cpus) {
+function createCPUTable(cpus) {
   return new Promise((resolve, reject) => {
-    db.run(
+    this.run(
       `CREATE TABLE IF NOT EXISTS cpus (
           time_id INTEGER,
           load REAL,
@@ -62,11 +77,10 @@ function createCPUTable(db, cpus) {
 
 /**
  * Create the table to hold system memory.
- * @param {sqlite3.Database} db Connection object to the database.
  */
-function createMemTable(db) {
+function createMemTable() {
   return new Promise((resolve, reject) => {
-    db.run(
+    this.run(
       `CREATE TABLE IF NOT EXISTS memory (
           time_id INTEGER, 
           free INTEGER, 
@@ -85,12 +99,11 @@ function createMemTable(db) {
 
 /**
  * Snippet to get all tables in the database.
- * @param {sqlite3.Database} db Connection object to the database.
  */
-function getTables(db) {
+function getTables() {
   return new Promise((resolve, reject) => {
     let tables = [];
-    db.each(
+    this.each(
       `SELECT name FROM sqlite_master WHERE type='table' AND name not like 'sqlite_%';`,
       (err, row) => {
         if (err) {
@@ -105,22 +118,20 @@ function getTables(db) {
 
 /**
  * Initiate the database with tables (time, cpus, memory).
- * @param {sqlite3.Database} db Connection object to the database.
  */
-async function initDB(db) {
-  await createTimeTable(db);
-  await createCPUTable(db, os.cpus());
-  await createMemTable(db);
-  console.log(await getTables(db));
+async function initDB() {
+  await this.createTimeTable();
+  await this.createCPUTable(os.cpus());
+  await this.createMemTable();
+  console.log(await this.getTables());
 }
 
 /**
  * Close the connection to a sqlite3 database.
- * @param {sqlite3.Database instance} db Instance of the sqlite3 database to close the connection to.
  */
-function closeDB(db) {
+function closeDB() {
   return new Promise((resolve, reject) => {
-    db.close(err => {
+    this.close(err => {
       if (err) {
         console.error(err);
         reject(err);
@@ -133,13 +144,12 @@ function closeDB(db) {
 
 /**
  * Insert the timestamp of current timestep into the database and retuns its id
- * @param {sqlite3.Database} db Connection instance to a database
  * @param {Date} t Date object of the current timestep
  * @returns {Number} ID of the inserted row.
  */
-async function insertDBTime(db, t) {
+async function insertDBTime(t) {
   return new Promise((resolve, reject) => {
-    db.run(`INSERT INTO time(timestamp) VALUES(?)`, [t.getTime()], function(
+    this.run(`INSERT INTO time(timestamp) VALUES(?)`, [t.getTime()], function(
       err
     ) {
       if (err) {
@@ -150,13 +160,34 @@ async function insertDBTime(db, t) {
   });
 }
 
-module.exports = {
-  openDB: openDB,
-  closeDB: closeDB,
-  initDB: initDB,
-  createTimeTable: createTimeTable,
-  createCPUTable: createCPUTable,
-  createMemTable: createMemTable,
-  getTables: getTables,
-  insertDBTime: insertDBTime
-};
+/**
+ * Return an array of time_id corresponding to timestamps in the specified time windows.
+ * @param {Date} tstart First timestamp of the time window (included)
+ * @param {Date} tend Last timestamp of the time window (included)
+ */
+function getTimeWindowIDs(tstart, tend) {
+  return new Promise((resolve, reject) => {
+    let time_ids = [];
+    this.each(
+      `
+    SELECT time_id 
+    FROM time 
+    WHERE timestamp >= ? AND timestamp <= ?`,
+      [tstart.getTime(), tend.getTime()],
+      (err, row) => {
+        if (err) {
+          reject(err);
+        }
+        time_ids.push(row.time_id);
+      },
+      (err, nbRows) => {
+        if (err) {
+          reject(err);
+        }
+        resolve(time_ids);
+      }
+    );
+  });
+}
+
+module.exports = openDB;

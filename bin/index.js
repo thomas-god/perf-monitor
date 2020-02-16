@@ -1,4 +1,10 @@
 #!/usr/bin/env node
-const processing = require("./processing.js");
+const DB = require("./db-utils.js");
+const Monitoring = require("./monitoring.js");
 
-processing();
+(async () => {
+  const db = await DB("./data/test.db");
+  const monitoring = new Monitoring(db);
+
+  await monitoring.start();
+})();
