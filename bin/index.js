@@ -1,8 +1,10 @@
 #!/usr/bin/env node
+// Custom modules
 const DB = require("./db-utils.js");
 const Monitoring = require("./monitoring.js");
 const options = require("./args")();
 
+// Express and middlewares
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -10,6 +12,12 @@ const cors = require("cors");
 const app = express();
 let clients = [];
 
+/**
+ * Handle clients list for SSE of monitoring
+ * @param {request} req HTTP request
+ * @param {response} res HTTP response
+ * @param {next} next Express Middleware
+ */
 async function eventsHandler(req, res, next) {
   // SSE headers
   const headers = {
@@ -34,6 +42,8 @@ async function eventsHandler(req, res, next) {
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.static("public"));
+
 app.get("/monitoring", eventsHandler);
 
 app.listen(options.port, () =>

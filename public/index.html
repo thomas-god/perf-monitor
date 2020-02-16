@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test SSE</title>
+  </head>
+  <body>
+    <p id="test"></p>
+  </body>
+  <script>
+    const eventSource = new EventSource("http://localhost:3000/monitoring");
+    const p = document.getElementById("test");
+    eventSource.onmessage = function(event) {
+      p.innerText = event.data;
+    };
+  </script>
+</html>
