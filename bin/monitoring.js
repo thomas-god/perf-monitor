@@ -56,7 +56,7 @@ class Monitoring extends EventEmitter {
       cpup = JSON.parse(JSON.stringify(cpu));
 
       // Emit event
-      this.emit("log_in_db", "New timestamp logged into database");
+      this.emit("log_in_db", time_id);
 
       // Sleep until next timestp
       await sleep(this.options.freq);
