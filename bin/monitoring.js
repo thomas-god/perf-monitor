@@ -19,6 +19,17 @@ class Monitoring extends EventEmitter {
 
     // Initial state
     this.run = false;
+
+    // Attach debug stop
+    if (this.options.debug) {
+      let debug_count = 0;
+      this.on("log_in_db", () => {
+        debug_count += 1;
+        if (debug_count > 10) {
+          this.stop();
+        }
+      });
+    }
   }
 
   async start() {
@@ -28,8 +39,7 @@ class Monitoring extends EventEmitter {
     await sleep(this.options.freq);
 
     // Infinite loop
-    let i_debug = 0;
-    while (this.run ? (this.options.debug ? i_debug < 10 : true) : false) {
+    while (this.run) {
       // Get measures
       let t = new Date();
       let cpu = os.cpus();
@@ -51,7 +61,6 @@ class Monitoring extends EventEmitter {
 
       // Sleep until next timestp
       await sleep(this.options.freq);
-      i_debug += 1;
     }
   }
 
