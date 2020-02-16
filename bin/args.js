@@ -21,7 +21,7 @@ function parseArgs() {
         break;
       case "-debug":
         if (value in [0, 1]) {
-          options["debug"] = Boolean(value);
+          options["debug"] = Boolean(Number(value));
         } else {
           console.error("-debug option must evaluate to a boolean.");
         }
