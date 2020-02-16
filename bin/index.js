@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const DB = require("./db-utils.js");
 const Monitoring = require("./monitoring.js");
+const options = require("./args")();
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -35,7 +36,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.get("/monitoring", eventsHandler);
 
-app.listen(3000, () => console.log("Server listenning on port 3000..."));
+app.listen(options.port, () =>
+  console.log(`Server listenning on port ${options.port}...`)
+);
 
 (async () => {
   const db = await DB("./data/test.db");
