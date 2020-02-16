@@ -1,12 +1,14 @@
 const os = require("os");
 const parseArgs = require("./args.js");
+const EventEmitter = require("events");
 
-class Monitoring {
+class Monitoring extends EventEmitter {
   /**
    *
    * @param {sqlite3.Database} db Connection instance to the database
    */
   constructor(db) {
+    super();
     // Save db connection object
     this.db = db;
     console.log(this.db);
@@ -43,6 +45,9 @@ class Monitoring {
 
       // Update previous values
       cpup = JSON.parse(JSON.stringify(cpu));
+
+      // Emit event
+      this.emit("log_in_db", "New timestamp logged into database");
 
       // Sleep until next timestp
       await sleep(this.options.freq);
