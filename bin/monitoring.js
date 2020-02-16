@@ -11,7 +11,6 @@ class Monitoring extends EventEmitter {
     super();
     // Save db connection object
     this.db = db;
-    console.log(this.db);
 
     // Load user's parameters
     this.options = parseArgs();
