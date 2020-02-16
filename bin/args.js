@@ -46,7 +46,7 @@ function parseArgs() {
     options["debug"] = false;
   }
   if (!("port" in options)) {
-    options["debug"] = 3000;
+    options["port"] = 3000;
   }
   return options;
 }
