@@ -49,14 +49,14 @@ class Monitoring extends EventEmitter {
 
       // Launch async monitoring
       let time_id = await this.db.insertDBTime(t);
-      cpuLoad(cpup, cpu, this.db, time_id);
+      let load = await cpuLoad(cpup, cpu, this.db, time_id);
       memoryUsage(mem, this.db, time_id);
 
       // Update previous values
       cpup = JSON.parse(JSON.stringify(cpu));
 
       // Emit event
-      this.emit("log_in_db", time_id);
+      this.emit("log_in_db", { time_id: time_id, time: t, load: load });
 
       // Sleep until next timestp
       await sleep(this.options.freq);

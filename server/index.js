@@ -53,10 +53,10 @@ app.listen(options.port, () =>
 (async () => {
   const db = await DB("./data/test.db");
   const monitoring = new Monitoring(db);
-  monitoring.on("log_in_db", time_id => {
+  monitoring.on("log_in_db", values => {
     console.log("Event from monitoring");
     clients.forEach(c => {
-      c.res.write(`data:${JSON.stringify({ time_id: time_id })}\n\n`);
+      c.res.write(`data:${JSON.stringify(values)}\n\n`);
     });
   });
 

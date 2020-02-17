@@ -1,9 +1,6 @@
 <template>
   <div>
     <h1>{{ msg }}</h1>
-    <ul>
-      <li v-for="item in items" :key="item.time_id">{{ item.time_id }}</li>
-    </ul>
     <StreamDataChart :items="items"></StreamDataChart>
   </div>
 </template>
@@ -29,9 +26,9 @@ export default {
     vm.evtSource = new EventSource(vm.evtPath);
     vm.evtSource.onmessage = function(event) {
       let val = JSON.parse(event.data);
-      val.value = Math.random();
+      val.time = new Date(val.time);
       vm.items.push(val);
-      if (vm.items.length > 10) {
+      if (vm.items.length > 60) {
         vm.items.shift();
       }
     };

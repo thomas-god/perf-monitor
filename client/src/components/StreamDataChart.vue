@@ -32,10 +32,10 @@ export default {
   },
   computed: {
     chartDataX: function() {
-      return this.items.map(x => x.time_id);
+      return this.items.map(x => x.time.toLocaleTimeString());
     },
     chartDataY: function() {
-      return this.items.map(x => x.value);
+      return this.items.map(x => x.load);
     },
     chartData: function() {
       return {
