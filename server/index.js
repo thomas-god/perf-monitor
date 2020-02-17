@@ -18,7 +18,7 @@ let clients = [];
  * @param {response} res HTTP response
  * @param {next} next Express Middleware
  */
-async function eventsHandler(req, res, next) {
+async function clientsHandler(req, res, next) {
   // SSE headers
   const headers = {
     "Content-Type": "text/event-stream",
@@ -44,7 +44,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static("public"));
 
-app.get("/monitoring", eventsHandler);
+app.get("/monitoring", clientsHandler);
 
 app.listen(options.port, () =>
   console.log(`Server listenning on port ${options.port}...`)
