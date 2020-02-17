@@ -16,9 +16,23 @@ export default {
     return {
       chartOptions: {
         scales: {
-          xAxes: {
-            display: true
-          }
+          xAxes: [
+            {
+              display: true,
+              ticks: {
+                maxTicksLimit: 10,
+                autoSkip: true
+              }
+            }
+          ],
+          yAxes: [
+            {
+              ticks: {
+                suggestedMin: 0,
+                suggestedMax: 100
+              }
+            }
+          ]
         },
         animation: {
           duration: 0,
