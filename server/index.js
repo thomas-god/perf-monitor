@@ -42,7 +42,7 @@ async function clientsHandler(req, res, next) {
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static("public"));
+app.use(express.static("client/dist"));
 
 app.get("/monitoring", clientsHandler);
 
