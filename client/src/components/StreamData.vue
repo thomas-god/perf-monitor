@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1>{{ msg }}</h1>
-    <StreamDataChart :items="items"></StreamDataChart>
+    <StreamDataChart :items="cpuLoad"></StreamDataChart>
   </div>
 </template>
 
@@ -32,6 +32,11 @@ export default {
         vm.items.shift();
       }
     };
+  },
+  computed: {
+    cpuLoad: function() {
+      return this.items.map(val => Object({ x: val.time, y: val.cpu_load }));
+    }
   }
 };
 </script>

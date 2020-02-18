@@ -41,15 +41,12 @@ export default {
       }
     };
   },
-  mounted() {
-    this.fillData();
-  },
   computed: {
     chartDataX: function() {
-      return this.items.map(x => x.time.toLocaleTimeString());
+      return this.items.map(val => val.x.toLocaleTimeString());
     },
     chartDataY: function() {
-      return this.items.map(x => x.load);
+      return this.items.map(val => val.y);
     },
     chartData: function() {
       return {
