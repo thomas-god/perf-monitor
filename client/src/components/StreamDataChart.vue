@@ -11,10 +11,28 @@ export default {
   components: {
     LineChart
   },
-  props: ["items"],
-  data() {
-    return {
-      chartOptions: {
+  props: ["items", "category"],
+  computed: {
+    chartDataX: function() {
+      return this.items.map(val => val.x.toLocaleTimeString());
+    },
+    chartDataY: function() {
+      return this.items.map(val => val.y);
+    },
+    chartData: function() {
+      return {
+        labels: this.chartDataX,
+        datasets: [
+          {
+            label: this.category.name,
+            data: this.chartDataY,
+            borderColor: this.category.mainColor
+          }
+        ]
+      };
+    },
+    chartOptions() {
+      return {
         scales: {
           xAxes: [
             {
@@ -28,8 +46,8 @@ export default {
           yAxes: [
             {
               ticks: {
-                suggestedMin: 0,
-                suggestedMax: 100
+                suggestedMin: this.category.minValue,
+                suggestedMax: this.category.maxValue
               }
             }
           ]
@@ -38,25 +56,6 @@ export default {
           duration: 0,
           easing: "linear"
         }
-      }
-    };
-  },
-  computed: {
-    chartDataX: function() {
-      return this.items.map(val => val.x.toLocaleTimeString());
-    },
-    chartDataY: function() {
-      return this.items.map(val => val.y);
-    },
-    chartData: function() {
-      return {
-        labels: this.chartDataX,
-        datasets: [
-          {
-            label: "Monitoring data",
-            data: this.chartDataY
-          }
-        ]
       };
     }
   }
@@ -65,7 +64,7 @@ export default {
 
 <style>
 .small {
-  max-width: 600px;
-  margin: 150px auto;
+  max-width: 700px;
+  max-height: 300px;
 }
 </style>
