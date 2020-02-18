@@ -1,6 +1,7 @@
 const os = require("os");
 const parseArgs = require("./args.js");
 const EventEmitter = require("events");
+const si = require("systeminformation");
 
 class Monitoring extends EventEmitter {
   /**
@@ -34,29 +35,31 @@ class Monitoring extends EventEmitter {
   async start() {
     // Initialization
     this.run = true;
-    let cpup = os.cpus();
     await sleep(this.options.freq);
 
     // Infinite loop
     while (this.run) {
       // Get measures
       let t = new Date();
-      let cpu = os.cpus();
-      let mem = {
-        free: os.freemem(),
-        tot: os.totalmem()
-      };
 
       // Launch async monitoring
       let time_id = await this.db.insertDBTime(t);
-      let load = await cpuLoad(cpup, cpu, this.db, time_id);
-      memoryUsage(mem, this.db, time_id);
-
-      // Update previous values
-      cpup = JSON.parse(JSON.stringify(cpu));
+      let load = cpuLoad(this.db, time_id);
+      let mem = memoryUsage(this.db, time_id);
 
       // Emit event
-      this.emit("log_in_db", { time_id: time_id, time: t, load: load });
+      let res = {};
+      let obj = this;
+      Promise.all([load, mem]).then(function(values) {
+        values.forEach(value => {
+          for (let [key, val] of Object.entries(value)) {
+            res[key] = Math.round(val * 100) / 100;
+          }
+        });
+        res.time = t;
+        console.log(res);
+        obj.emit("log_in_db", res);
+      });
 
       // Sleep until next timestp
       await sleep(this.options.freq);
@@ -69,56 +72,52 @@ class Monitoring extends EventEmitter {
 }
 
 /**
- * Convert os.cpus data into load values
- * @param {os.cpus return object} cpus_p CPUs object from the previous timestep
- * @param {os.cpus return object} cpus CPUs object from the current time step
+ * Get current CPU load value and write it to the database
+ * @param {sqlite3.Database} db Connection to a database
+ * @param {Number} timde_id Time_id of the row to insert into
  */
-function cpuLoad(cpus_p, cpus, db, time_id) {
-  return new Promise((resolve, reject) => {
-    let load = [];
-    for (let i = 0, len = cpus.length; i < len; i++) {
-      let cpu = cpus[i].times,
-        cpup = cpus_p[i].times;
-      let total =
-        cpu.user - cpup.user + cpu.sys - cpup.sys + cpu.idle - cpup.idle;
-      load.push(total > 0 ? ((cpu.user - cpup.user) / total) * 100 : 0);
-    }
-    let full_load = load.reduce((a, b) => a + b) / load.length;
+function cpuLoad(db, time_id) {
+  return si.currentLoad().then(load => {
+    return new Promise((resolve, reject) => {
+      let full_load = load.currentload;
 
-    // Insert into db
-    db.run(
-      `INSERT INTO cpus(time_id, load) VALUES(?, ?)`,
-      [time_id, full_load],
-      function(err) {
-        if (err) {
-          reject(err);
+      // Insert into db
+      db.run(
+        `INSERT INTO cpus(time_id, load) VALUES(?, ?)`,
+        [time_id, full_load],
+        function(err) {
+          if (err) {
+            reject(err);
+          }
         }
-      }
-    );
-    resolve(full_load);
+      );
+      resolve({ cpu_load: full_load });
+    });
   });
 }
 
 /**
- * Convert memory data into readable form
- * @param {Date object} t Current time in ms since epoch
- * @param {Object} mem Object with total and free memory
+ * Get current memory usage and write it to the database
+ * @param {sqlite3.Database} db Connection to a database
+ * @param {Number} timde_id Time_id of the row to insert into
  */
-function memoryUsage(mem, db, time_id) {
-  return new Promise((resolve, reject) => {
-    let free = mem.free / 1024 / 1024 / 1024;
-    let tot = mem.tot / 1024 / 1024 / 1024;
-    // Insert into DB
-    db.run(
-      `INSERT INTO memory(time_id, total, free) VALUES(?, ?, ?)`,
-      [time_id, tot, free],
-      function(err) {
-        if (err) {
-          console.error(err);
+function memoryUsage(db, time_id) {
+  return si.mem().then(mem => {
+    return new Promise((resolve, reject) => {
+      let free = mem.free / 1024 / 1024 / 1024;
+      let tot = mem.total / 1024 / 1024 / 1024;
+      // Insert into DB
+      db.run(
+        `INSERT INTO memory(time_id, total, free) VALUES(?, ?, ?)`,
+        [time_id, tot, free],
+        function(err) {
+          if (err) {
+            reject(err);
+          }
         }
-      }
-    );
-    resolve({ free: free, tot: tot });
+      );
+      resolve({ free: free, tot: tot });
+    });
   });
 }
 
