@@ -69,6 +69,16 @@ class Monitoring extends EventEmitter {
   stop() {
     this.run = false;
   }
+
+  getHostInfos() {
+    return si.osInfo().then(infos => {
+      return {
+        hostname: infos.hostname,
+        distro: infos.distro,
+        release: infos.release
+      };
+    });
+  }
 }
 
 /**

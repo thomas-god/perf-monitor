@@ -1,6 +1,6 @@
 <template>
   <div class="monitoring">
-    <h1>{{ msg }}</h1>
+    <h1>{{ welcomeMsg }}</h1>
     <div class="cardsContainer">
       <StreamDataCard
         v-for="cat in categories"
@@ -38,13 +38,14 @@ export default {
       items: [],
       evtSource: {},
       categories: categories,
-      currentCategory: categories[0]
+      currentCategory: categories[0],
+      hostInfos: {}
     };
   },
   created: function() {
     let vm = this;
     vm.evtSource = new EventSource(vm.evtPath);
-    vm.evtSource.onmessage = function(event) {
+    vm.evtSource.addEventListener("data", function(event) {
       let val = JSON.parse(event.data);
       val.time = new Date(val.time);
 
@@ -71,7 +72,10 @@ export default {
           }
         }
       });
-    };
+    });
+    vm.evtSource.addEventListener("hostinfos", function(event) {
+      vm.hostInfos = JSON.parse(event.data);
+    });
   },
   computed: {
     currentData: function() {
@@ -89,6 +93,10 @@ export default {
           break;
       }
       return data;
+    },
+    welcomeMsg: function() {
+      return `
+      Monitoring data from ${this.hostInfos.hostname} (${this.hostInfos.distro} ${this.hostInfos.release})`;
     }
   }
 };

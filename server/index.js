@@ -8,6 +8,7 @@ const cors = require("cors");
 
 const app = express();
 var clients = [];
+var monitoring = {};
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -27,11 +28,11 @@ DB("./data/test.db").then(db => main(db));
  * @param {sqlite3.Database} db Connection to the database
  */
 function main(db) {
-  const monitoring = new Monitoring(db);
+  monitoring = new Monitoring(db);
   monitoring.on("log_in_db", values => {
     console.log("Event from monitoring");
     clients.forEach(c => {
-      c.res.write(`data:${JSON.stringify(values)}\n\n`);
+      c.res.write(`event: data\ndata:${JSON.stringify(values)}\n\n`);
     });
   });
 
@@ -52,6 +53,11 @@ async function clientsHandler(req, res, next) {
     "Cache-Control": "no-cache"
   };
   res.writeHead(200, headers);
+
+  // Host information
+  monitoring.getHostInfos().then(x => {
+    client.res.write(`event: hostinfos\ndata:${JSON.stringify(x)}\n\n`);
+  });
 
   // Unique id for this client
   let client = { id: Date.now(), res };
