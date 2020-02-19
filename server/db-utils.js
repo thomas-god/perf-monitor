@@ -1,6 +1,15 @@
 const sqlite3 = require("sqlite3").verbose();
 const os = require("os");
 
+exports = module.exports = createConnection;
+
+async function createConnection(path) {
+  var db = await openDB(path);
+  await db.initDB();
+
+  return db;
+}
+
 /**
  * Open a connection to an in memory sqlite3 database and return the DB object.
  * @param {String} path Path to the database file.
@@ -25,7 +34,7 @@ function openDB(path) {
       db.closeDB = closeDB;
 
       // Init DB with tables
-      db.initDB();
+      //db.initDB();
 
       console.log("Connection open to an in-memory database");
       resolve(db);
@@ -190,4 +199,4 @@ function getTimeWindowIDs(tstart, tend) {
   });
 }
 
-module.exports = openDB;
+//module.exports = openDB;

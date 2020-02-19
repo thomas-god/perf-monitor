@@ -1,19 +1,45 @@
 #!/usr/bin/env node
-// Custom modules
 const DB = require("./db-utils.js");
 const Monitoring = require("./monitoring.js");
 const options = require("./args")();
-
-// Express and middlewares
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 
 const app = express();
-let clients = [];
+var clients = [];
+
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.static("client/dist"));
+
+app.get("/monitoring", clientsHandler);
+
+app.listen(options.port, () =>
+  console.log(`Server listenning on port ${options.port}...`)
+);
+
+DB("./data/test.db").then(db => main(db));
 
 /**
- * Handle clients list for SSE of monitoring
+ * Main function
+ * @param {sqlite3.Database} db Connection to the database
+ */
+function main(db) {
+  const monitoring = new Monitoring(db);
+  monitoring.on("log_in_db", values => {
+    console.log("Event from monitoring");
+    clients.forEach(c => {
+      c.res.write(`data:${JSON.stringify(values)}\n\n`);
+    });
+  });
+
+  monitoring.start();
+}
+
+/**
+ * Handle clients list to which monitoring events must be sent
  * @param {request} req HTTP request
  * @param {response} res HTTP response
  * @param {next} next Express Middleware
@@ -38,27 +64,3 @@ async function clientsHandler(req, res, next) {
     clients = clients.filter(c => c.id !== client.id);
   });
 }
-
-app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static("client/dist"));
-
-app.get("/monitoring", clientsHandler);
-
-app.listen(options.port, () =>
-  console.log(`Server listenning on port ${options.port}...`)
-);
-
-(async () => {
-  const db = await DB("./data/test.db");
-  const monitoring = new Monitoring(db);
-  monitoring.on("log_in_db", values => {
-    console.log("Event from monitoring");
-    clients.forEach(c => {
-      c.res.write(`data:${JSON.stringify(values)}\n\n`);
-    });
-  });
-
-  monitoring.start();
-})();
