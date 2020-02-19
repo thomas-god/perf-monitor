@@ -79,6 +79,47 @@ class Monitoring extends EventEmitter {
       };
     });
   }
+
+  getLastValues(t, n) {
+    let values = [];
+    return new Promise((resolve, reject) => {
+      this.db.each(
+        `
+      SELECT 
+        cpus.load,
+        memory.free,
+        memory.total,
+        time.timestamp
+      FROM 
+        time
+      INNER JOIN cpus
+        ON time.time_id = cpus.time_id
+      INNER JOIN memory
+        ON time.time_id = memory.time_id
+      WHERE 
+        (time.timestamp > (?));`,
+        [t - n * 1000],
+        (err, row) => {
+          if (err) {
+            reject(err);
+          }
+          values.push({
+            time: row.timestamp,
+            cpu_load: row.load,
+            free: row.free,
+            tot: row.total
+          });
+        },
+        (err, nbrows) => {
+          if (err) {
+            reject(err);
+          }
+          console.log(nbrows);
+          resolve(values);
+        }
+      );
+    });
+  }
 }
 
 /**

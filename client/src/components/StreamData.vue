@@ -46,27 +46,30 @@ export default {
     let vm = this;
     vm.evtSource = new EventSource(vm.evtPath);
     vm.evtSource.addEventListener("data", function(event) {
-      let val = JSON.parse(event.data);
-      val.time = new Date(val.time);
+      let values = JSON.parse(event.data);
+      values.forEach(val => {
+        val.time = new Date(val.time);
 
-      // Push val to items list
-      vm.items.push(val);
-      if (vm.items.length > 60) {
-        vm.items.shift();
-      }
+        // Push val to items list
+        vm.items.push(val);
+        if (vm.items.length > 60) {
+          vm.items.shift();
+        }
+      });
 
-      // Push values to DataCards
+      // Push last value to DataCards
+      let last_val = vm.items[vm.items.length - 1];
       vm.categories.forEach(function(cat) {
         switch (cat.name) {
           case "CPU": {
-            cat.value = val.cpu_load.toFixed(2).padStart(6) + " %";
+            cat.value = last_val.cpu_load.toFixed(2).padStart(6) + " %";
             break;
           }
           case "RAM": {
             cat.value =
-              (val.tot - val.free).toFixed(2).padStart(5) +
+              (last_val.tot - last_val.free).toFixed(2).padStart(5) +
               "/" +
-              val.tot.toFixed(2) +
+              last_val.tot.toFixed(2) +
               " Go";
             break;
           }

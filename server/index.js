@@ -32,7 +32,7 @@ function main(db) {
   monitoring.on("log_in_db", values => {
     console.log("Event from monitoring");
     clients.forEach(c => {
-      c.res.write(`event: data\ndata:${JSON.stringify(values)}\n\n`);
+      c.res.write(`event: data\ndata:${JSON.stringify([values])}\n\n`);
     });
   });
 
@@ -58,6 +58,13 @@ async function clientsHandler(req, res, next) {
   monitoring.getHostInfos().then(x => {
     client.res.write(`event: hostinfos\ndata:${JSON.stringify(x)}\n\n`);
   });
+
+  // Previous data
+  monitoring
+    .getLastValues(Date.now(), 60)
+    .then(values =>
+      client.res.write(`event: data\ndata:${JSON.stringify(values)}\n\n`)
+    );
 
   // Unique id for this client
   let client = { id: Date.now(), res };
