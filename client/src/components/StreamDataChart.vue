@@ -1,5 +1,10 @@
 <template>
-  <line-chart :type="graphType" :data="chartData" :options="chartOptions" />
+  <line-chart
+    :type="graphType"
+    :data="chartData"
+    :options="chartOptions"
+    class="data-chart"
+  />
 </template>
 
 <script>
@@ -68,8 +73,9 @@ export default {
 </script>
 
 <style>
-.small {
-  max-width: 700px;
-  max-height: 300px;
+.data-chart {
+  margin-top: 2rem;
+  align-self: stretch;
+  font-size: 1.2rem;
 }
 </style>

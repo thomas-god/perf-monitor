@@ -47,7 +47,6 @@ export default {
 
 <style>
 .div-chart {
-  width: 100%;
   height: 500px;
 }
 </style>

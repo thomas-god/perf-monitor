@@ -107,6 +107,7 @@ export default {
   display: flex;
   flex-flow: column nowrap;
   align-items: center;
+  margin: 2rem;
 }
 
 .cardsContainer {
