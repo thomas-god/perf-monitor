@@ -4,7 +4,9 @@
   "description": "Monitor a system's performances with Node.js",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build-client": "cd client && npm install && npm run build",
+    "build-server": "npm install",
+    "build": "npm run build-server & npm run build-client"
   },
   "repository": {
     "type": "git",
