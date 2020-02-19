@@ -6,7 +6,9 @@
   "scripts": {
     "build-client": "cd client && npm install && npm run build",
     "build-server": "npm install",
-    "build": "npm run build-server & npm run build-client"
+    "build": "npm run build-server & npm run build-client",
+    "dev-client": "cd client && npm run --silent serve",
+    "dev-server": "nodemon server/index.js"
   },
   "repository": {
     "type": "git",
@@ -24,5 +26,8 @@
     "express": "^4.17.1",
     "sqlite3": "^4.1.1",
     "systeminformation": "^4.22.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.2"
   }
 }
