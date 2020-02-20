@@ -37,7 +37,8 @@ export default {
       categories: categories,
       currentCategory: categories[0],
       hostInfos: {},
-      clientID: ""
+      clientID: "",
+      monitoringOptions: {}
     };
   },
   created: function() {
@@ -76,8 +77,10 @@ export default {
     });
     vm.evtSource.addEventListener("hostinfos", function(event) {
       let infos = JSON.parse(event.data);
+      console.log(infos);
       vm.hostInfos = infos.hostInfos;
       vm.clientID = infos.clientID;
+      vm.monitoringOptions = infos.options;
     });
   },
   computed: {

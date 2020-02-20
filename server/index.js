@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 const DB = require("./db-utils.js");
 const Monitoring = require("./monitoring.js");
-const options = require("./args")();
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+
+const options = require("./args.js")();
+console.log(options);
 
 const app = express();
 var clients = [];
@@ -28,7 +30,7 @@ DB("./data/test.db").then(db => main(db));
  * @param {sqlite3.Database} db Connection to the database
  */
 function main(db) {
-  monitoring = new Monitoring(db);
+  monitoring = new Monitoring(options, db);
   monitoring.on("log_in_db", values => {
     console.log("Event from monitoring");
     clients.forEach(c => {
@@ -55,16 +57,17 @@ async function clientsHandler(req, res, next) {
   res.writeHead(200, headers);
 
   // Attribute a unique id for this client
-  let client = { id: Date.now(), res };
+  let client = { id: Date.now(), res, options: getDefaultClientOptions() };
   clients.push(client);
   console.log(`${client.id}: connection started.`);
 
   // Send host and client information
   monitoring.getHostInfos().then(hostInfos => {
     let infos = {
-      hostInfos: hostInfos
+      hostInfos: hostInfos,
+      clientID: client.id,
+      options: client.options
     };
-    infos.clientID = client.id;
     client.res.write(`event: hostinfos\ndata:${JSON.stringify(infos)}\n\n`);
   });
 
@@ -80,4 +83,28 @@ async function clientsHandler(req, res, next) {
     console.log(`${client.id}: connection closed.`);
     clients = clients.filter(c => c.id !== client.id);
   });
+}
+
+/**
+ * Return default monitoring options object for the client.
+ */
+function getDefaultClientOptions() {
+  let clientOptions = {};
+
+  clientOptions.freq = {
+    // Monitoring frequency in ms
+    max: options.history * 30 * 24 * 3600 * 1000,
+    min: options.freq,
+    value: options.freq,
+    unit: "ms"
+  };
+  clientOptions.hist = {
+    // Max window size in seconds
+    max: options.history * 30 * 24 * 3600,
+    min: 1,
+    value: 60,
+    unit: "s"
+  };
+
+  return clientOptions;
 }

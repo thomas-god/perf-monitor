@@ -8,16 +8,10 @@ class Monitoring extends EventEmitter {
    *
    * @param {sqlite3.Database} db Connection instance to the database
    */
-  constructor(db) {
+  constructor(options, db) {
     super();
-    // Save db connection object
     this.db = db;
-
-    // Load user's parameters
-    this.options = parseArgs();
-    console.log(this.options);
-
-    // Initial state
+    this.options = options;
     this.run = false;
 
     // Attach debug stop

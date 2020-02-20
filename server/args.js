@@ -9,16 +9,16 @@ function parseArgs() {
   while (args.length) {
     let [key, value] = args.splice(0, 2);
     switch (key) {
-      case "-freq": {
+      case "-f": {
         let val = Number(value);
         if (!isNaN(val) && val > 0) {
           options["freq"] = Number(value);
         } else {
-          throw `-freq option must be a positive number, invalid value provided (${value})`;
+          throw `-f option must be a positive number (number of ms), invalid value provided (${value})`;
         }
         break;
       }
-      case "-debug": {
+      case "--debug": {
         if (value in [0, 1]) {
           options["debug"] = Boolean(Number(value));
         } else {
@@ -35,6 +35,14 @@ function parseArgs() {
         }
         break;
       }
+      case "--history": {
+        let val = Number(val);
+        if (Number.isInteger(val) && val > 0) {
+          options["history"] = val;
+        } else {
+          throw `--history option must be a positive integer (number of days), invalid value provided (${value})`;
+        }
+      }
     }
   }
 
@@ -47,6 +55,9 @@ function parseArgs() {
   }
   if (!("port" in options)) {
     options["port"] = 3000;
+  }
+  if (!("history" in options)) {
+    options["history"] = 30;
   }
   return options;
 }
