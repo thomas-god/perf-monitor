@@ -6,11 +6,10 @@ const si = require("systeminformation");
 class Monitoring extends EventEmitter {
   /**
    *
-   * @param {sqlite3.Database} db Connection instance to the database
    */
-  constructor(options, db) {
+  constructor(options) {
     super();
-    this.db = db;
+    this.db;
     this.options = options;
     this.run = false;
 
@@ -24,6 +23,10 @@ class Monitoring extends EventEmitter {
         }
       });
     }
+  }
+
+  setDB(db) {
+    this.db = db;
   }
 
   async start() {
@@ -51,7 +54,6 @@ class Monitoring extends EventEmitter {
           }
         });
         res.time = t;
-        console.log(res);
         obj.emit("log_in_db", res);
       });
 
@@ -108,7 +110,6 @@ class Monitoring extends EventEmitter {
           if (err) {
             reject(err);
           }
-          console.log(nbrows);
           resolve(values);
         }
       );
