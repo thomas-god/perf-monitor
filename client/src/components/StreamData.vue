@@ -51,7 +51,7 @@ export default {
 
         // Push val to items list
         vm.items.push(val);
-        if (vm.items.length > 60) {
+        while (vm.items.length > vm.monitoringOptions.hist.value) {
           vm.items.shift();
         }
       });
