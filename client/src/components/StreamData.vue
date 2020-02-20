@@ -10,10 +10,7 @@
       />
     </div>
 
-    <StreamDataChart
-      :items="currentData"
-      :category="currentCategory"
-    ></StreamDataChart>
+    <StreamDataChart :items="currentData" :category="currentCategory"></StreamDataChart>
   </div>
 </template>
 
@@ -39,7 +36,8 @@ export default {
       evtSource: {},
       categories: categories,
       currentCategory: categories[0],
-      hostInfos: {}
+      hostInfos: {},
+      clientID: ""
     };
   },
   created: function() {
@@ -77,7 +75,9 @@ export default {
       });
     });
     vm.evtSource.addEventListener("hostinfos", function(event) {
-      vm.hostInfos = JSON.parse(event.data);
+      let infos = JSON.parse(event.data);
+      vm.hostInfos = infos.hostInfos;
+      vm.clientID = infos.clientID;
     });
   },
   computed: {

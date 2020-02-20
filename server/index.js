@@ -54,22 +54,26 @@ async function clientsHandler(req, res, next) {
   };
   res.writeHead(200, headers);
 
-  // Host information
-  monitoring.getHostInfos().then(x => {
-    client.res.write(`event: hostinfos\ndata:${JSON.stringify(x)}\n\n`);
+  // Attribute a unique id for this client
+  let client = { id: Date.now(), res };
+  clients.push(client);
+  console.log(`${client.id}: connection started.`);
+
+  // Send host and client information
+  monitoring.getHostInfos().then(hostInfos => {
+    let infos = {
+      hostInfos: hostInfos
+    };
+    infos.clientID = client.id;
+    client.res.write(`event: hostinfos\ndata:${JSON.stringify(infos)}\n\n`);
   });
 
-  // Previous data
+  // Send previous data
   monitoring
     .getLastValues(Date.now(), 60)
     .then(values =>
       client.res.write(`event: data\ndata:${JSON.stringify(values)}\n\n`)
     );
-
-  // Unique id for this client
-  let client = { id: Date.now(), res };
-  clients.push(client);
-  console.log(`${client.id}: connection started.`);
 
   // Remove client from clients list on close
   req.on("close", () => {
