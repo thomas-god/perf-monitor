@@ -1,9 +1,6 @@
 <template>
   <div id="app">
-    <StreamData
-      msg="Monitoring data from server..."
-      evtPath="http://localhost:3000/monitoring"
-    />
+    <StreamData msg="Monitoring data from server..." evtPath="http://localhost:3000/monitoring" />
   </div>
 </template>
 
@@ -25,6 +22,5 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
 }
 </style>

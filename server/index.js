@@ -93,17 +93,21 @@ function getDefaultClientOptions() {
 
   clientOptions.freq = {
     // Monitoring frequency in ms
+    name: "frequency",
     max: options.history * 30 * 24 * 3600 * 1000,
     min: options.freq,
     value: options.freq,
-    unit: "ms"
+    unit: "ms",
+    text: "Monitoring frequency"
   };
   clientOptions.hist = {
     // Max window size in seconds
+    name: "history",
     max: options.history * 30 * 24 * 3600,
     min: 1,
     value: 60,
-    unit: "s"
+    unit: "s",
+    text: "History size"
   };
 
   return clientOptions;

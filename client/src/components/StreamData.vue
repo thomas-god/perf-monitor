@@ -1,6 +1,7 @@
 <template>
   <div class="monitoring">
     <h1>{{ welcomeMsg }}</h1>
+    <StreamOptionsPopUp :options="monitoringOptions" @options-modified="updateOptions" />
     <div class="cardsContainer">
       <StreamDataCard
         v-for="cat in categories"
@@ -17,6 +18,7 @@
 <script>
 import StreamDataCard from "./StreamDataCard";
 import StreamDataChart from "./StreamDataChart.vue";
+import StreamOptionsPopUp from "./StreamOptionsPopUp.vue";
 
 var categories = [
   { name: "CPU", mainColor: "red", value: 0, minValue: 0, maxValue: 100 },
@@ -25,7 +27,7 @@ var categories = [
 
 export default {
   name: "StreamData",
-  components: { StreamDataChart, StreamDataCard },
+  components: { StreamDataChart, StreamDataCard, StreamOptionsPopUp },
   props: {
     msg: String,
     evtPath: String
@@ -77,7 +79,6 @@ export default {
     });
     vm.evtSource.addEventListener("hostinfos", function(event) {
       let infos = JSON.parse(event.data);
-      console.log(infos);
       vm.hostInfos = infos.hostInfos;
       vm.clientID = infos.clientID;
       vm.monitoringOptions = infos.options;
@@ -104,6 +105,11 @@ export default {
       return `
       Monitoring data from ${this.hostInfos.hostname} (${this.hostInfos.distro} ${this.hostInfos.release})`;
     }
+  },
+  methods: {
+    updateOptions: function(event) {
+      this.monitoringOptions = event;
+    }
   }
 };
 </script>
@@ -113,7 +119,7 @@ export default {
   display: flex;
   flex-flow: column nowrap;
   align-items: center;
-  margin: 2rem;
+  margin: 0rem 2rem 2rem;
 }
 
 .cardsContainer {
