@@ -28,6 +28,7 @@
     "systeminformation": "^4.22.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.2"
+    "nodemon": "^2.0.2",
+    "uuid": "^3.4.0"
   }
 }

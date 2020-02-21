@@ -3,6 +3,8 @@ var router = express.Router();
 
 router.get("/", clientsHandler);
 
+router.post("/options", updateOptions);
+
 /**
  * Handle clients list to which monitoring events must be sent
  * @param {request} req HTTP request
@@ -49,7 +51,7 @@ async function clientsHandler(req, res) {
   client.req.on("close", event => {
     let client_idx = req.app.locals.clients.findIndex(c => c.id === client.id);
     if (client_idx > -1) {
-    console.log(`${client.id}: connection closed.`);
+      console.log(`${client.id}: connection closed.`);
       req.app.locals.clients.splice(client_idx, 1);
     }
   });
@@ -81,6 +83,32 @@ function getDefaultClientOptions(options) {
   };
 
   return clientOptions;
+}
+
+function updateOptions(req, res) {
+  let clientID = req.body.clientID;
+  let client = req.app.locals.clients.find(c => c.id === clientID);
+  if (client === undefined) {
+    res.status(403).end();
+    return;
+  }
+
+  client.pause = true;
+  console.log(`${Date()}: updating options, SSE connection paused`);
+  let newOptions = req.body.options;
+  Object.entries(newOptions).forEach(([key, value]) => {
+    client.options[key].value = value;
+  });
+  req.app.locals.monitoring
+    .getLastValues(Date.now(), getNbTimesteps(client))
+    .then(newData => {
+      res.status(200).json({
+        options: client.options,
+        data: newData
+      });
+      console.log(`${Date()}: options updated, SSE connection unpaused`);
+      client.pause = false;
+    });
 }
 
 /**

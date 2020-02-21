@@ -109,6 +109,34 @@ export default {
   methods: {
     updateOptions: function(event) {
       this.monitoringOptions = event;
+      this.sendUpdatedOptions();
+    },
+    sendUpdatedOptions: async function() {
+      let vm = this;
+      let body = { clientID: vm.clientID };
+      body.options = {};
+      Object.entries(vm.monitoringOptions).forEach(([key, value]) => {
+        body.options[key] = value.value;
+      });
+      fetch("http://localhost:3000/monitoring/options", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      })
+        .then(response => response.json())
+        .then(({ data, options }) => {
+          vm.monitoringOptions = options;
+          vm.items.splice(0, vm.items.length);
+          data.forEach(val => {
+            val.time = new Date(val.time);
+            vm.items.push(val);
+            while (vm.items.length > vm.monitoringOptions.hist.value) {
+              vm.items.shift();
+            }
+          });
+        });
     }
   }
 };

@@ -23,7 +23,6 @@ app.use("/monitoring", sse);
 // Initiate monitoring instance
 var monitoring = new Monitoring(options);
 monitoring.on("log_in_db", values => {
-  console.log("Event from monitoring");
   clients.forEach(c => {
     // Single event, use [values] to send an array
     if (!c.pause) {
