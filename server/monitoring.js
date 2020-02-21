@@ -25,6 +25,10 @@ class Monitoring extends EventEmitter {
     }
   }
 
+  /**
+   * Update the database used by the monitoring object
+   * @param {Database} db New database to use
+   */
   setDB(db) {
     this.db = db;
   }
@@ -62,10 +66,16 @@ class Monitoring extends EventEmitter {
     }
   }
 
+  /**
+   * Stop the monitoring process
+   */
   stop() {
     this.run = false;
   }
 
+  /**
+   * Returns host information (hostname, distro, release)
+   */
   getHostInfos() {
     return si.osInfo().then(infos => {
       return {
@@ -76,6 +86,11 @@ class Monitoring extends EventEmitter {
     });
   }
 
+  /**
+   * Get n timesteps, ending a t
+   * @param {Number} t End time of the data
+   * @param {Integer} n Number of timestep to get, backward from t
+   */
   getLastValues(t, n) {
     let values = [];
     return new Promise((resolve, reject) => {
