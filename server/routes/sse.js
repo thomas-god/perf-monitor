@@ -1,9 +1,7 @@
 var express = require("express");
 var router = express.Router();
 
-router.get("/", function(req, res) {
-  clientsHandler(req, res);
-});
+router.get("/", clientsHandler);
 
 /**
  * Handle clients list to which monitoring events must be sent
@@ -22,8 +20,10 @@ async function clientsHandler(req, res) {
   // Attribute a unique id for this client
   let client = {
     id: Date.now(),
-    res,
-    options: getDefaultClientOptions(req.app.locals.options)
+    req: req,
+    res: res,
+    options: getDefaultClientOptions(req.app.locals.options),
+    pause: false
   };
   req.app.locals.clients.push(client);
   console.log(`${client.id}: connection started.`);
@@ -40,17 +40,18 @@ async function clientsHandler(req, res) {
 
   // Send previous data
   req.app.locals.monitoring
-    .getLastValues(Date.now(), 60)
-    .then(values =>
-      client.res.write(`event: data\ndata:${JSON.stringify(values)}\n\n`)
-    );
+    .getLastValues(Date.now(), getNbTimesteps(client))
+    .then(values => {
+      client.res.write(`event: data\ndata:${JSON.stringify(values)}\n\n`);
+    });
 
   // Remove client from clients list on close
-  req.on("close", () => {
+  client.req.on("close", event => {
+    let client_idx = req.app.locals.clients.findIndex(c => c.id === client.id);
+    if (client_idx > -1) {
     console.log(`${client.id}: connection closed.`);
-    req.app.locals.clients = req.app.locals.clients.filter(
-      c => c.id !== client.id
-    );
+      req.app.locals.clients.splice(client_idx, 1);
+    }
   });
 }
 
@@ -80,6 +81,17 @@ function getDefaultClientOptions(options) {
   };
 
   return clientOptions;
+}
+
+/**
+ * Return the number of timesteps to retrieve depending on client's
+ * history size and frequency options.
+ * @param {client objet} client Current client
+ */
+function getNbTimesteps(client) {
+  return Math.ceil(
+    client.options.hist.value / (client.options.freq.value / 1000)
+  );
 }
 
 module.exports = router;

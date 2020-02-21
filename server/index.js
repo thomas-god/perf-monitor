@@ -25,7 +25,10 @@ var monitoring = new Monitoring(options);
 monitoring.on("log_in_db", values => {
   console.log("Event from monitoring");
   clients.forEach(c => {
+    // Single event, use [values] to send an array
+    if (!c.pause) {
     c.res.write(`event: data\ndata:${JSON.stringify([values])}\n\n`);
+    }
   });
 });
 app.locals.monitoring = monitoring;
