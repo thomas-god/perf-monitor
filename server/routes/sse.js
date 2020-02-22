@@ -70,7 +70,8 @@ function getDefaultClientOptions(options) {
     min: options.freq,
     value: options.freq,
     unit: "ms",
-    text: "Monitoring frequency"
+    text: "Monitoring frequency",
+    edit: false
   };
   clientOptions.hist = {
     // Max window size in seconds
@@ -79,7 +80,8 @@ function getDefaultClientOptions(options) {
     min: 1,
     value: 60,
     unit: "s",
-    text: "History size"
+    text: "History size",
+    edit: true
   };
 
   return clientOptions;
@@ -94,7 +96,7 @@ function updateOptions(req, res) {
   }
 
   client.pause = true;
-  console.log(`${Date()}: updating options, SSE connection paused`);
+  console.log(`${client.id}: updating options, SSE connection paused`);
   let newOptions = req.body.options;
   Object.entries(newOptions).forEach(([key, value]) => {
     client.options[key].value = value;
@@ -106,7 +108,7 @@ function updateOptions(req, res) {
         options: client.options,
         data: newData
       });
-      console.log(`${Date()}: options updated, SSE connection unpaused`);
+      console.log(`${client.id}: options updated, SSE connection unpaused`);
       client.pause = false;
     });
 }
