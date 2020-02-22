@@ -13,9 +13,16 @@
           <input
             :ref="option.name"
             type="number"
-            v-model="option.value"
+            v-model.number="option.value"
+            :style="option.error ? errorStyle : ''"
           />
         </label>
+        <span
+          v-for="option in newOptions"
+          :key="option.name + '-error'"
+          :style="{display: option.error ? 'block' : 'none'}"
+          class="error-msg"
+        >{{ option.text + " must be a positive number" }}</span>
         <button @click="validateForm">Save</button>
       </div>
     </div>
@@ -28,20 +35,34 @@ export default {
   methods: {
     showForm: function() {
       this.newOptions = JSON.parse(JSON.stringify(this.options));
+      Object.keys(this.newOptions).forEach(key => {
+        this.$set(this.newOptions[key], "error", false);
+      });
       this.showModal = true;
     },
     validateForm: function() {
+      let err = false;
       for (let option of Object.values(this.newOptions)) {
-        option.value = Number(option.value);
+        if (option.value === "" || option.value <= 0) {
+          err = true;
+          option.error = true;
+        }
       }
-      this.$emit("options-modified", this.newOptions);
-      this.showModal = false;
+      if (err) {
+        //this.newOptions = JSON.parse(JSON.stringify(this.options));
+      } else {
+        this.$emit("options-modified", this.newOptions);
+        this.showModal = false;
+      }
     }
   },
   data() {
     return {
       showModal: false,
-      newOptions: {}
+      newOptions: {},
+      errorStyle: {
+        border: "1px solid red"
+      }
     };
   }
 };
@@ -117,5 +138,10 @@ export default {
 .modal-container button:hover {
   background: linear-gradient(to bottom, #f6f6f6 5%, #ffffff 100%);
   background-color: #f6f6f6;
+}
+
+.error-msg {
+  color: red;
+  font-size: 0.8rem;
 }
 </style>
