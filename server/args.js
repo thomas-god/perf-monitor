@@ -1,5 +1,46 @@
+const fs = require("fs");
+
 /**
- * Parse CLI arguments into a comprehensive object.
+ * Assemble options from default, config file and arguments.
+ */
+function getOptions() {
+  let options = defaultOptions();
+
+  let fileOptions = loadFileOptions();
+  Object.entries(fileOptions).forEach(([key, val]) => {
+    options[key] = val;
+  });
+
+  let argsOptions = parseArgs();
+  Object.entries(argsOptions).forEach(([key, val]) => {
+    options[key] = val;
+  });
+
+  return options;
+}
+
+/**
+ * Return the default options object.
+ */
+function defaultOptions() {
+  return {
+    freq: 1000,
+    debug: false,
+    port: 3000,
+    history: 30
+  };
+}
+
+/**
+ * Return options from the config file
+ */
+function loadFileOptions() {
+  let options = JSON.parse(fs.readFileSync("config.json"));
+  return options;
+}
+
+/**
+ * Return options passed as command line arguments
  */
 function parseArgs() {
   const args = process.argv.slice(2);
@@ -45,21 +86,7 @@ function parseArgs() {
       }
     }
   }
-
-  // Populate with default values
-  if (!("freq" in options)) {
-    options["freq"] = 1000;
-  }
-  if (!("debug" in options)) {
-    options["debug"] = false;
-  }
-  if (!("port" in options)) {
-    options["port"] = 3000;
-  }
-  if (!("history" in options)) {
-    options["history"] = 30;
-  }
   return options;
 }
 
-module.exports = parseArgs;
+module.exports = getOptions;

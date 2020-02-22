@@ -1,0 +1,6 @@
+{
+  "freq": 1000,
+  "debug": false,
+  "port": 3000,
+  "history": 30
+}
