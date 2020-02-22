@@ -3,7 +3,7 @@
     <button @click="showForm">Options</button>
     <div v-if="showModal" class="modal-mask">
       <div class="modal-container">
-        <h2>Options for monitoring</h2>
+        <h2>Options</h2>
         <label
           v-for="option in newOptions"
           :key="option.name"

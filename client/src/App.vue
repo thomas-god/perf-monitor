@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <StreamData msg="Monitoring data from server..." evtPath="http://localhost:3000/monitoring" />
+    <StreamData evtPath="http://localhost:3000/monitoring" />
   </div>
 </template>
 

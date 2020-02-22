@@ -1,7 +1,7 @@
 <template>
   <div class="monitoring">
-    <h1>{{ welcomeMsg }}</h1>
     <StreamOptionsPopUp :options="monitoringOptions" @options-modified="updateOptions" />
+    <h1>{{ welcomeMsg }}</h1>
     <div class="cardsContainer">
       <StreamDataCard
         v-for="cat in categories"
@@ -29,7 +29,6 @@ export default {
   name: "StreamData",
   components: { StreamDataChart, StreamDataCard, StreamOptionsPopUp },
   props: {
-    msg: String,
     evtPath: String
   },
   data() {
@@ -103,7 +102,7 @@ export default {
     },
     welcomeMsg: function() {
       return `
-      Monitoring data from ${this.hostInfos.hostname} (${this.hostInfos.distro} ${this.hostInfos.release})`;
+      Monitoring ${this.hostInfos.hostname} (${this.hostInfos.distro} ${this.hostInfos.release})`;
     }
   },
   methods: {
@@ -148,6 +147,11 @@ export default {
   flex-flow: column nowrap;
   align-items: center;
   margin: 0rem 2rem 2rem;
+}
+
+.monitoring > h1 {
+  font-size: 1.7rem;
+  margin-top: 0;
 }
 
 .cardsContainer {
