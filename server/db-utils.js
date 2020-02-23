@@ -3,9 +3,9 @@ const os = require("os");
 
 exports = module.exports = createConnection;
 
-async function createConnection(path) {
+async function createConnection(options, path) {
   var db = await openDB(path);
-  await db.initDB();
+  await db.initDB(options);
 
   return db;
 }
@@ -24,6 +24,7 @@ function openDB(path) {
       }
 
       // Add custom methods to the database instance
+      db.createOptionsTable = createOptionsTable;
       db.createTimeTable = createTimeTable;
       db.createCPUTable = createCPUTable;
       db.createMemTable = createMemTable;
@@ -33,10 +34,6 @@ function openDB(path) {
       db.getTimeWindowIDs = getTimeWindowIDs;
       db.closeDB = closeDB;
 
-      // Init DB with tables
-      //db.initDB();
-
-      console.log("Connection open to an in-memory database");
       resolve(db);
     });
   });
@@ -44,6 +41,7 @@ function openDB(path) {
 
 /**
  * Create the time table in the database.
+ * @param {Number} history History size in days.
  */
 function createTimeTable() {
   return new Promise((resolve, reject) => {
@@ -51,11 +49,21 @@ function createTimeTable() {
       `CREATE TABLE IF NOT EXISTS time (
         time_id INTEGER PRIMARY KEY NOT NULL, 
         timestamp INTEGER
-      );`,
+      );
+      `,
       err => {
         if (err) {
           reject(err);
         }
+        console.log("table time created...");
+        this.run(
+          `
+          CREATE TRIGGER IF NOT EXISTS trim_time_table AFTER INSERT ON time BEGIN
+            DELETE FROM time WHERE timestamp < (new.timestamp - (
+              SELECT value FROM options WHERE name = "history"
+            ));
+          END;`
+        );
         resolve();
       }
     );
@@ -72,7 +80,7 @@ function createCPUTable(cpus) {
       `CREATE TABLE IF NOT EXISTS cpus (
           time_id INTEGER,
           load REAL,
-          FOREIGN KEY(time_id) REFERENCES time(time_id)
+          FOREIGN KEY(time_id) REFERENCES time(time_id) ON UPDATE CASCADE ON DELETE CASCADE
         );`,
       err => {
         if (err) {
@@ -94,7 +102,7 @@ function createMemTable() {
           time_id INTEGER, 
           free INTEGER, 
           total INTEGER, 
-          FOREIGN KEY(time_id) REFERENCES time(time_id)
+          FOREIGN KEY(time_id) REFERENCES time(time_id) ON UPDATE CASCADE ON DELETE CASCADE
         );`,
       err => {
         if (err) {
@@ -103,6 +111,29 @@ function createMemTable() {
         resolve();
       }
     );
+  });
+}
+
+/**
+ * Create a table to hold relevant db options
+ * @param {Object} options App options
+ */
+function createOptionsTable(options) {
+  return new Promise((resolve, reject) => {
+    this.serialize(function() {
+      this.run(`CREATE TABLE IF NOT EXISTS options (
+        name TEXT UNIQUE,
+        value REAL,
+        unit TEXT
+      );`);
+      this.run(
+        `INSERT OR REPLACE INTO options (name, value, unit) VALUES(
+        "history", ?, "ms"
+      );`,
+        options.history * 24 * 3600 * 1000
+      );
+      resolve();
+    });
   });
 }
 
@@ -128,7 +159,9 @@ function getTables() {
 /**
  * Initiate the database with tables (time, cpus, memory).
  */
-async function initDB() {
+async function initDB(options) {
+  console.log(options);
+  await this.createOptionsTable(options);
   await this.createTimeTable();
   await this.createCPUTable(os.cpus());
   await this.createMemTable();

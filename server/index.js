@@ -33,7 +33,7 @@ monitoring.on("log_in_db", values => {
 app.locals.monitoring = monitoring;
 
 // Connect to db and start listenning and monitoring
-DB("./data/test.db").then(db => {
+DB(options, "./data/test.db").then(db => {
   monitoring.setDB(db);
   app.listen(options.port, () =>
     console.log(`Server listenning on port ${options.port}...`)
