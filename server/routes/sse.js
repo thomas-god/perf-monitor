@@ -27,24 +27,28 @@ async function clientsHandler(req, res) {
     options: getDefaultClientOptions(req.app.locals.options),
     pause: false
   };
-  req.app.locals.clients.push(client);
-  console.log(`${client.id}: connection started.`);
 
   // Send host and client information
-  req.app.locals.monitoring.getHostInfos().then(hostInfos => {
-    let infos = {
-      hostInfos: hostInfos,
-      clientID: client.id,
-      options: client.options
-    };
-    client.res.write(`event: hostinfos\ndata:${JSON.stringify(infos)}\n\n`);
-  });
-
-  // Send previous data
   req.app.locals.monitoring
-    .getLastValues(Date.now(), getNbTimesteps(client))
-    .then(values => {
-      client.res.write(`event: data\ndata:${JSON.stringify(values)}\n\n`);
+    .getHostInfos()
+    .then(hostInfos => {
+      let infos = {
+        hostInfos: hostInfos,
+        clientID: client.id,
+        options: client.options
+      };
+      client.res.write(`event: hostinfos\ndata:${JSON.stringify(infos)}\n\n`);
+    })
+    .then(() => {
+      // Send previous data
+      req.app.locals.monitoring
+        .getLastValues(Date.now(), getNbTimesteps(client))
+        .then(values => {
+          client.res.write(`event: data\ndata:${JSON.stringify(values)}\n\n`);
+        })
+        .then(() => {
+          req.app.locals.clients.push(client);
+        });
     });
 
   // Remove client from clients list on close
