@@ -108,8 +108,8 @@ class Monitoring extends EventEmitter {
       INNER JOIN memory
         ON time.time_id = memory.time_id
       WHERE 
-        (time.timestamp > (?));`,
-        [t - n * 1000],
+        (time.timestamp >= (?));`,
+        [t - n * this.options.freq],
         (err, row) => {
           if (err) {
             reject(err);
